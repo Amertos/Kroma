@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KROMA | Define Your Reality</title>
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0a0a0a',
+                        acid: '#ccff00',
+                        bone: '#f5f5f5'
+                    },
+                    fontFamily: {
+                        sync: ['Syncopate', 'sans-serif'],
+                        space: ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-dark text-bone font-space overflow-x-hidden">
+
+    <!-- Custom Cursor -->
+    <div id="cursor"
+        class="fixed w-8 h-8 border-2 border-acid rounded-full pointer-events-none z-[9999] mix-blend-difference items-center justify-center flex transition-transform duration-100 ease-out hidden lg:flex">
+        <div class="w-1 h-1 bg-acid rounded-full"></div>
+    </div>
+
+    <!-- Intro Loader -->
+    <div id="loader" class="fixed inset-0 z-[10000] bg-dark flex flex-col items-center justify-center">
+        <div class="text-4xl font-sync font-bold tracking-[1em] animate-pulse text-acid">KROMA</div>
+        <div class="mt-4 text-[10px] uppercase tracking-[0.5em] opacity-50">Initializing Reality...</div>
+    </div>
+
+    <!-- Grain Overlay -->
+    <div class="grain"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-[1000] px-8 py-6 flex justify-between items-center mix-blend-difference">
+        <a href="#" class="text-2xl font-sync font-bold tracking-tighter hover:text-acid transition-colors">KROMA.</a>
+        <div class="flex items-center space-x-12 text-[10px] font-bold uppercase tracking-[0.3em]">
+            <a href="#shop" class="hover:text-acid transition-colors hidden md:block">Collection</a>
+            <div class="flex items-center space-x-6">
+                <button id="auth-trigger" class="flex items-center gap-2 hover:text-acid transition-colors">
+                    <i class="ri-user-line text-lg"></i>
+                    <span id="user-status-text">Login</span>
+                </button>
+                <button id="cart-trigger" class="relative hover:text-acid transition-colors">
+                    <i class="ri-shopping-bag-line text-xl"></i>
+                    <span id="cart-count"
+                        class="absolute -top-1 -right-2 bg-acid text-dark w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black opacity-0 transition-opacity">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Smooth Scroll Container (Lenis) -->
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+
+            <!-- Hero Section -->
+            <section class="relative h-screen flex items-center justify-center overflow-hidden">
+                <canvas id="webgl" class="absolute inset-0 z-0"></canvas>
+                <div class="relative z-10 text-center pointer-events-none px-4">
+                    <h1 class="text-6xl md:text-9xl font-sync font-bold leading-none tracking-tighter mb-4 opacity-0 uppercase"
+                        id="hero-title">
+                        DEFINE YOUR<br><span class="text-acid">REALITY.</span>
+                    </h1>
+                    <p class="text-[10px] md:text-xs uppercase tracking-[0.8em] font-medium opacity-0"
+                        id="hero-subtitle">
+                        Underground High Fashion & Streetwear // Est. 2026
+                    </p>
+                </div>
+                <div
+                    class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 opacity-50">
+                    <div class="w-[1px] h-20 bg-bone/20 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-full bg-acid -translate-y-full animate-scroll-line">
+                        </div>
+                    </div>
+                    <span class="text-[8px] uppercase tracking-widest">Scroll Down</span>
+                </div>
+            </section>
+
+            <!-- Shop Grid -->
+            <section id="shop" class="py-40 px-8 max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+                    <div>
+                        <h2 class="text-[10px] font-bold uppercase tracking-[0.4em] text-acid mb-4">// Collection v1.0
+                        </h2>
+                        <h3 class="text-4xl md:text-6xl font-sync font-bold tracking-tighter uppercase leading-none">The
+                            Void Series</h3>
+                    </div>
+                </div>
+
+                <div id="product-grid"
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-bone/5 border border-bone/5 overflow-hidden">
+                    <!-- Products injected by JS -->
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="py-20 px-8 border-t border-bone/5">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-20">
+                    <div>
+                        <h2 class="text-xl font-sync font-bold mb-8">KROMA.</h2>
+                        <p class="text-sm opacity-40 max-w-xs leading-loose">
+                            Uncompromising garments for the digital age. Designed in the underground, built for the
+                            future.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] mb-8 text-acid">Navigation</h4>
+                        <ul class="space-y-4 text-xs font-bold opacity-60">
+                            <li><a href="#" class="hover:text-acid transition-colors">Manifesto</a></li>
+                            <li><a href="#" class="hover:text-acid transition-colors">Collection</a></li>
+                            <li><a href="#" class="hover:text-acid transition-colors">Technical Specs</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] mb-8 text-acid">Social Terminal</h4>
+                        <ul class="space-y-4 text-xs font-bold opacity-60">
+                            <li><a href="#" class="hover:text-acid transition-colors">Instagram</a></li>
+                            <li><a href="#" class="hover:text-acid transition-colors">Twitter (X)</a></li>
+                            <li><a href="#" class="hover:text-acid transition-colors">Discord</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-40 text-center opacity-20 text-[8px] uppercase tracking-[0.5em]">
+                    &copy; 2026 KROMA Collective. All Rights Inverted.Amer Biberovic
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Product Detail Modal -->
+    <div id="detail-modal"
+        class="fixed inset-0 z-[2050] flex items-center justify-center pointer-events-none opacity-0 transition-all duration-500">
+        <div class="absolute inset-0 bg-dark/95 backdrop-blur-xl detail-overlay"></div>
+        <div
+            class="relative w-full max-w-5xl h-[85vh] overflow-hidden transform scale-95 transition-all duration-500 bg-dark border border-bone/5 flex flex-col md:flex-row">
+            <button
+                class="absolute top-6 right-6 close-modal z-50 opacity-40 hover:opacity-100 hover:text-acid transition-all"><i
+                    class="ri-close-line text-3xl"></i></button>
+            <div class="md:w-1/2 p-10 bg-bone/5 flex items-center justify-center overflow-hidden">
+                <img id="detail-img" src=""
+                    class="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-700">
+            </div>
+            <div class="md:w-1/2 p-12 overflow-y-auto scroll-hide">
+                <div class="mb-12">
+                    <span id="detail-category"
+                        class="text-acid text-[10px] font-bold uppercase tracking-[0.5em] mb-6 block">// CATEGORY</span>
+                    <h2 id="detail-name"
+                        class="text-4xl md:text-5xl font-sync font-bold uppercase tracking-tighter leading-none mb-6">
+                        PRODUCT NAME</h2>
+                    <p id="detail-desc" class="text-sm opacity-40 leading-loose max-w-md">Product description goes here.
+                    </p>
+                </div>
+
+                <div class="space-y-12">
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] mb-6 opacity-30">Select Variant
+                            (Color)</h4>
+                        <div id="detail-colors" class="flex gap-4">
+                            <!-- Colors injected -->
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] mb-6 opacity-30">Size Matrix</h4>
+                        <div id="detail-sizes" class="flex flex-wrap gap-3">
+                            <!-- Sizes injected -->
+                        </div>
+                    </div>
+                    <div class="pt-10 border-t border-bone/10 flex items-center justify-between">
+                        <div class="text-3xl font-sync font-bold" id="detail-price">$000</div>
+                        <button id="detail-add-to-cart"
+                            class="bg-acid text-dark px-10 py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all active:scale-95 shadow-2xl">
+                            Initialize Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal"
+        class="fixed inset-0 z-[2000] flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-500">
+        <div class="absolute inset-0 bg-dark/95 backdrop-blur-md auth-overlay"></div>
+        <div
+            class="relative w-full max-w-md p-10 transform scale-95 transition-transform duration-500 bg-dark border border-bone/10">
+            <div id="login-form">
+                <h2 class="text-2xl font-sync font-bold mb-8 uppercase tracking-tighter">Login Terminal</h2>
+                <form id="form-login" class="space-y-6">
+                    <input type="email" id="login-email" placeholder="Identifier (Email)" required
+                        class="w-full bg-bone/5 border-b border-bone/20 p-4 text-sm focus:border-acid outline-none transition-all">
+                    <input type="password" id="login-password" placeholder="Passcode" required
+                        class="w-full bg-bone/5 border-b border-bone/20 p-4 text-sm focus:border-acid outline-none transition-all">
+                    <button type="submit"
+                        class="w-full bg-acid text-dark p-4 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all">Enter
+                        Protocol</button>
+                </form>
+                <div class="mt-8 text-center text-[10px] font-bold uppercase tracking-widest opacity-40">
+                    No access? <button class="toggle-auth text-acid underline">Request ID</button>
+                </div>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2 class="text-2xl font-sync font-bold mb-8 uppercase tracking-tighter">Registration</h2>
+                <form id="form-register" class="space-y-6">
+                    <input type="text" id="reg-name" placeholder="Name" required
+                        class="w-full bg-bone/5 border-b border-bone/20 p-4 text-sm focus:border-acid outline-none transition-all">
+                    <input type="email" id="reg-email" placeholder="Email" required
+                        class="w-full bg-bone/5 border-b border-bone/20 p-4 text-sm focus:border-acid outline-none transition-all">
+                    <input type="password" id="reg-password" placeholder="Password" required
+                        class="w-full bg-bone/5 border-b border-bone/20 p-4 text-sm focus:border-acid outline-none transition-all">
+                    <button type="submit"
+                        class="w-full bg-acid text-dark p-4 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all">Register
+                        Account</button>
+                </form>
+                <div class="mt-8 text-center text-[10px] font-bold uppercase tracking-widest opacity-40">
+                    Existing ID? <button class="toggle-auth text-acid underline">Login Terminal</button>
+                </div>
+            </div>
+            <button class="absolute top-4 right-4 close-modal opacity-50 hover:opacity-100"><i
+                    class="ri-close-line text-2xl"></i></button>
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div id="cart-drawer"
+        class="fixed inset-y-0 right-0 w-full max-w-md z-[2100] translate-x-full transition-transform duration-700 bg-dark border-l border-bone/10 shadow-2xl flex flex-col">
+        <div class="p-8 border-b border-bone/10 flex justify-between items-center">
+            <h2 class="text-xl font-sync font-bold uppercase tracking-tighter">Cart (Bag)</h2>
+            <button class="close-cart opacity-50 hover:opacity-100"><i class="ri-close-line text-2xl"></i></button>
+        </div>
+        <div id="cart-items-list" class="flex-1 overflow-y-auto p-8 space-y-8 scroll-hide">
+            <!-- Items injected by JS -->
+        </div>
+        <div class="p-8 border-t border-bone/10 bg-dark/50 backdrop-blur-xl">
+            <div class="flex justify-between items-end mb-8">
+                <span class="text-[10px] uppercase tracking-widest opacity-40">Total Valuation</span>
+                <span id="cart-total-price" class="text-2xl font-sync font-bold">$00.00</span>
+            </div>
+            <button id="checkout-trigger"
+                class="w-full bg-acid text-dark p-5 text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-white transition-all">Proceed
+                to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal"
+        class="fixed inset-0 z-[2200] flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-500">
+        <div class="absolute inset-0 bg-dark/95 backdrop-blur-md checkout-overlay"></div>
+        <div
+            class="relative w-full max-w-2xl p-12 transition-all duration-500 bg-dark border border-bone/10 transform scale-95 max-h-[90vh] overflow-y-auto scroll-hide">
+
+            <div id="checkout-steps">
+                <!-- Step 1: Shipment -->
+                <div class="checkout-step" data-step="1">
+                    <div class="flex items-center gap-4 mb-10">
+                        <span
+                            class="w-8 h-8 rounded-full border border-acid flex items-center justify-center text-xs font-bold text-acid italic">01</span>
+                        <h2 class="text-2xl font-sync font-bold uppercase tracking-tighter">Shipment Terminal</h2>
+                    </div>
+                    <form id="shipping-form" class="grid grid-cols-2 gap-6">
+                        <input type="text" placeholder="Recipient Name" required
+                            class="col-span-2 bg-bone/5 border border-bone/10 p-4 text-xs focus:border-acid outline-none transition-all">
+                        <input type="text" placeholder="Global Address" required
+                            class="col-span-2 bg-bone/5 border border-bone/10 p-4 text-xs focus:border-acid outline-none transition-all">
+                        <input type="text" placeholder="City" required
+                            class="bg-bone/5 border border-bone/10 p-4 text-xs focus:border-acid outline-none transition-all">
+                        <input type="text" placeholder="Postal Code" required
+                            class="bg-bone/5 border border-bone/10 p-4 text-xs focus:border-acid outline-none transition-all">
+
+                        <div class="col-span-2 mt-8">
+                            <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] mb-6 opacity-30">Transaction
+                                Protocol</h4>
+                            <div class="grid grid-cols-2 gap-4" id="payment-methods">
+                                <div class="payment-card p-6 border border-bone/10 cursor-pointer hover:border-acid transition-all group active"
+                                    data-method="card">
+                                    <i class="ri-bank-card-line text-2xl mb-4 group-hover:text-acid"></i>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest">Credit Card</div>
+                                </div>
+                                <div class="payment-card p-6 border border-bone/10 cursor-pointer hover:border-acid transition-all group"
+                                    data-method="digital">
+                                    <i class="ri-wallet-3-line text-2xl mb-4 group-hover:text-acid"></i>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest">Digital Asset</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-span-2 bg-bone/5 p-8 mt-4 border border-bone/10">
+                            <div
+                                class="flex justify-between items-center text-xs font-bold uppercase tracking-widest mb-2 opacity-50">
+                                <span>Order Weight</span>
+                                <span id="summary-items-count">0 Items</span>
+                            </div>
+                            <div
+                                class="flex justify-between items-center text-xl font-sync font-bold uppercase tracking-tighter">
+                                <span>Final Valuation</span>
+                                <span id="summary-total-price">$000.00</span>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="col-span-2 bg-acid text-dark p-4 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all mt-6">Initialize
+                            Authorization</button>
+                    </form>
+                </div>
+
+                <!-- Step 2: Payment -->
+                <div class="checkout-step hidden" data-step="2">
+                    <div class="flex items-center gap-4 mb-10">
+                        <span
+                            class="w-8 h-8 rounded-full border border-acid flex items-center justify-center text-xs font-bold text-acid italic">02</span>
+                        <h2 class="text-2xl font-sync font-bold uppercase tracking-tighter">Authorization Input</h2>
+                    </div>
+                    <form id="payment-form" class="space-y-6">
+                        <div class="relative">
+                            <i
+                                class="ri-shield-keyhole-line absolute right-4 top-1/2 -translate-y-1/2 text-acid/40 text-xl"></i>
+                            <input type="text" placeholder="Fidelity ID (#### #### #### ####)" required
+                                class="w-full bg-bone/5 border border-bone/10 p-5 text-xs font-bold focus:border-acid outline-none transition-all tracking-[0.2em]">
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <input type="text" placeholder="EXP (MM/YY)" required
+                                class="bg-bone/5 border border-bone/10 p-5 text-xs focus:border-acid outline-none transition-all">
+                            <input type="text" placeholder="CVO / CVC" required
+                                class="bg-bone/5 border border-bone/10 p-5 text-xs focus:border-acid outline-none transition-all">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-acid text-dark p-6 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all mt-6">Confirm
+                            Transmission</button>
+                    </form>
+                </div>
+
+                <!-- Step 3: Processing -->
+                <div class="checkout-step hidden" data-step="3">
+                    <div class="flex flex-col items-center justify-center py-20">
+                        <div class="relative w-24 h-24 mb-12">
+                            <div class="absolute inset-0 border-2 border-acid/10 rounded-full"></div>
+                            <div class="absolute inset-0 border-2 border-t-acid rounded-full animate-spin"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="ri-terminal-box-line text-acid animate-pulse text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-sync font-bold uppercase tracking-widest text-acid">Validating Assets...
+                        </h3>
+                        <p class="mt-4 text-[10px] opacity-40 uppercase tracking-widest stagger-pulse">Encrypted
+                            handshaking with cloud nodes</p>
+                    </div>
+                </div>
+
+                <!-- Step 4: Success -->
+                <div class="checkout-step hidden" data-step="4">
+                    <div class="text-center py-20">
+                        <div
+                            class="w-20 h-20 bg-acid/10 border border-acid rounded-full flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(204,255,0,0.2)]">
+                            <i class="ri-check-line text-acid text-4xl"></i>
+                        </div>
+                        <h2 class="text-4xl font-sync font-bold uppercase tracking-tighter mb-6">Manifest Assigned</h2>
+                        <p class="text-xs opacity-50 mb-12 max-w-sm mx-auto leading-loose tracking-widest">Garment data
+                            assigned to your digital identity. Prepare for physical manifestation at your selected node.
+                        </p>
+                        <button
+                            class="close-modal border-2 border-acid text-acid px-12 py-5 text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-acid hover:text-dark transition-all">Exit
+                            Terminal</button>
+                    </div>
+                </div>
+            </div>
+            <button class="absolute top-4 right-4 close-modal opacity-50 hover:opacity-100"><i
+                    class="ri-close-line text-2xl"></i></button>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal"
+        class="fixed inset-0 z-[2300] flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-500">
+        <div class="absolute inset-0 bg-dark/95 backdrop-blur-md profile-overlay"></div>
+        <div
+            class="relative w-full max-w-3xl p-12 transition-all duration-500 bg-dark border border-bone/10 transform scale-95 flex flex-col h-[80vh]">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 id="profile-user-name" class="text-3xl font-sync font-bold uppercase tracking-tighter">Identity:
+                        User</h2>
+                    <p id="profile-user-email" class="text-acid text-[10px] font-bold uppercase tracking-[0.3em] mt-2">
+                        user@domain.com</p>
+                </div>
+                <button id="logout-trigger"
+                    class="text-[10px] font-bold uppercase tracking-widest border-b border-rose-500 text-rose-500 hover:text-white hover:border-white transition-all pb-1">Logout</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto scroll-hide">
+                <h3
+                    class="text-[10px] font-bold uppercase tracking-[0.4em] mb-8 pb-4 border-b border-bone/10 opacity-40">
+                    Previous Assignments</h3>
+                <div id="order-history-list" class="space-y-6">
+                    <!-- Orders injected by JS -->
+                </div>
+            </div>
+
+            <button class="absolute top-6 right-6 close-modal opacity-50 hover:opacity-100"><i
+                    class="ri-close-line text-2xl"></i></button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
