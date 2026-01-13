@@ -97,7 +97,7 @@ To run the **KROMA Terminal** locally:
 
 ## 🖋️ IDENTITY
 
-- **Created by:** [Your Name / Amer Biberovic]
+- **Created by:** Amer Biberovic
 - **Release Year:** 2026
 - **Status:** Stable Alpha v1.0
 
@@ -106,3 +106,4 @@ To run the **KROMA Terminal** locally:
 <p align="center">
   <img src="https://img.shields.io/badge/TRANSITION_COMPLETE-AUTHORIZED-ccff00?style=for-the-badge" height="30">
 </p>
+
