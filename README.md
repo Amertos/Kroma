@@ -19,7 +19,7 @@
 
 ## ⚡ THE VISION
 
-**KROMA** is not just an e-commerce platform—it's a digital experience. Drawing inspiration from high-end technical labels and underground cyber-culture, KROMA provides an immersive interface that pushes the boundaries of modern web development.
+**KROMAA** is not just an e-commerce platform—it's a digital experience. Drawing inspiration from high-end technical labels and underground cyber-culture, KROMA provides an immersive interface that pushes the boundaries of modern web development.
 
 > *"Our fabrics are data. Our tailoring is code. Our reality is choice."*
 
