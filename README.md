@@ -29,7 +29,7 @@
 
 ### 💎 1. Immersive 3D Experience
 The hero section features a procedural, mouse-responsive wireframe object powered by **Three.js**. It creates a deep, spatial atmosphere the moment the user enters the terminal.
-> *[Insert GIF of Three.js Hero Movement Here]*
+
 
 ### 🎯 2. Precision Custom Cursor
 A high-performance interactive cursor system built with **GSAP QuickTo**. It delivers zero-lag tracking and dynamic expansion when hovering over interactive "nodes."
@@ -84,7 +84,7 @@ To run the **KROMA Terminal** locally:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/kroma.git
+   git clone https://github.com/Amertos/kroma.git
    ```
 2. **Open the directory:**
    ```bash
