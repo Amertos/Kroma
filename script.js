@@ -89,6 +89,19 @@ const KROMA_DATA = {
     ]
 };
 
+// 3D Scene Globals
+const KROMA_3D = {
+    camera: null,
+    mainMesh: null,
+    particleSystem: null,
+    shapes: [],
+    scrollProgress: 0,
+    mouseX: 0,
+    mouseY: 0,
+    targetX: 0,
+    targetY: 0
+};
+
 let state = {
     user: JSON.parse(localStorage.getItem('kroma_user')) || null,
     cart: JSON.parse(localStorage.getItem('kroma_cart')) || [],
@@ -103,6 +116,7 @@ window.addEventListener('load', () => {
     initGSAP();
     initCursor();
     renderProducts();
+    initCardTilt();
     updateUI();
 
     // Safety clearing for loader if Three.js fails or hits race condition
@@ -124,41 +138,236 @@ window.addEventListener('load', () => {
     setTimeout(clearLoader, 2000);
 });
 
-// --- THREE.JS BACKGROUND ---
+// --- THREE.JS IMMERSIVE SCENE ---
 function initThree() {
     try {
         const canvas = document.querySelector('#webgl');
         if (!canvas) return;
+
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        const geometry = new THREE.IcosahedronGeometry(2.5, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xccff00, wireframe: true, transparent: true, opacity: 0.08 });
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+        KROMA_3D.camera = camera;
+        camera.position.z = 8;
 
-        camera.position.z = 5;
-
-        let mouseX = 0, mouseY = 0;
-        window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        // --- 1. MAIN TORUS KNOT (hero geometry) ---
+        const mainGeo = new THREE.TorusKnotGeometry(1.0, 0.35, 128, 16);
+        const mainMat = new THREE.MeshBasicMaterial({
+            color: 0xccff00,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.18
         });
+        const mainMesh = new THREE.Mesh(mainGeo, mainMat);
+        scene.add(mainMesh);
+        KROMA_3D.mainMesh = mainMesh;
+
+        // Inner solid glow core
+        const innerGeo = new THREE.TorusKnotGeometry(0.7, 0.12, 64, 8);
+        const innerMat = new THREE.MeshBasicMaterial({
+            color: 0x88cc00,
+            transparent: true,
+            opacity: 0.06
+        });
+        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        scene.add(innerMesh);
+
+        // Extra outer ring
+        const ringGeo = new THREE.TorusGeometry(1.8, 0.04, 32, 64);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: 0xccff00,
+            transparent: true,
+            opacity: 0.08
+        });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        scene.add(ringMesh);
+
+        // --- 2. ORBITING PLATONIC SOLIDS ---
+        for (let i = 0; i < 10; i++) {
+            const size = 0.15 + Math.random() * 0.4;
+            let geo;
+            const type = Math.random();
+            if (type < 0.33) geo = new THREE.OctahedronGeometry(size);
+            else if (type < 0.66) geo = new THREE.DodecahedronGeometry(size);
+            else geo = new THREE.IcosahedronGeometry(size);
+
+            const hue = 0.25 + Math.random() * 0.15; // green to yellow-green
+            const c = new THREE.Color().setHSL(hue, 1, 0.5);
+            const mat = new THREE.MeshBasicMaterial({
+                color: c,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.1 + Math.random() * 0.2
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+
+            const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.3;
+            const radius = 2.0 + Math.random() * 2.5;
+            mesh.userData = {
+                angle: angle,
+                radius: radius,
+                orbitSpeed: 0.0015 + Math.random() * 0.003,
+                floatOffset: Math.random() * Math.PI * 2,
+                floatSpeed: 0.2 + Math.random() * 0.3,
+                floatAmp: 0.2 + Math.random() * 0.4,
+                rotSpeedX: 0.005 + Math.random() * 0.025,
+                rotSpeedY: 0.005 + Math.random() * 0.025
+            };
+
+            // Initial position
+            mesh.position.x = Math.cos(angle) * radius;
+            mesh.position.z = Math.sin(angle) * radius * 0.6;
+            mesh.position.y = Math.sin(mesh.userData.floatOffset) * mesh.userData.floatAmp;
+
+            scene.add(mesh);
+            KROMA_3D.shapes.push(mesh);
+        }
+
+        // --- 3. PARTICLE STARFIELD ---
+        const particleCount = 2000;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const rad = 8 + Math.random() * 25;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+
+            positions[i * 3] = rad * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = rad * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = rad * Math.cos(phi);
+
+            const h = 0.2 + Math.random() * 0.2;
+            const c = new THREE.Color().setHSL(h, 1, 0.3 + Math.random() * 0.4);
+            colors[i * 3] = c.r;
+            colors[i * 3 + 1] = c.g;
+            colors[i * 3 + 2] = c.b;
+        }
+
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const particleMat = new THREE.PointsMaterial({
+            size: 0.06,
+            transparent: true,
+            opacity: 0.7,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particleSystem = new THREE.Points(particleGeo, particleMat);
+        scene.add(particleSystem);
+        KROMA_3D.particleSystem = particleSystem;
+
+        // --- 4. CONNECTION LINES (subtle web effect) ---
+        const lineGeo = new THREE.BufferGeometry();
+        const linePositions = [];
+        const pos = particleGeo.attributes.position.array;
+        // Connect particles that are close together (sample ~400 connections max)
+        for (let i = 0; i < Math.min(particleCount, 400); i++) {
+            for (let j = i + 1; j < Math.min(particleCount, i + 5); j++) {
+                const dx = pos[i * 3] - pos[j * 3];
+                const dy = pos[i * 3 + 1] - pos[j * 3 + 1];
+                const dz = pos[i * 3 + 2] - pos[j * 3 + 2];
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (dist < 4) {
+                    linePositions.push(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]);
+                    linePositions.push(pos[j * 3], pos[j * 3 + 1], pos[j * 3 + 2]);
+                }
+            }
+        }
+
+        const linePosAttr = new THREE.BufferGeometry();
+        linePosAttr.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+        const lineMat = new THREE.LineBasicMaterial({
+            color: 0xccff00,
+            transparent: true,
+            opacity: 0.04
+        });
+        const lineSystem = new THREE.LineSegments(linePosAttr, lineMat);
+        scene.add(lineSystem);
+
+        // --- 5. MOUSE TRACKING ---
+        window.addEventListener('mousemove', (e) => {
+            KROMA_3D.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            KROMA_3D.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // --- 6. ANIMATION LOOP ---
+        const clock = new THREE.Clock();
 
         const animate = () => {
             requestAnimationFrame(animate);
-            mesh.rotation.y += 0.004;
-            mesh.rotation.x += 0.002;
-            mesh.position.x += (mouseX * 0.4 - mesh.position.x) * 0.05;
-            mesh.position.y += (-mouseY * 0.4 - mesh.position.y) * 0.05;
+            const elapsed = clock.getElapsedTime();
+
+            // Smooth mouse interpolation
+            const mx = KROMA_3D.mouseX;
+            const my = KROMA_3D.mouseY;
+            KROMA_3D.targetX += (mx - KROMA_3D.targetX) * 0.04;
+            KROMA_3D.targetY += (my - KROMA_3D.targetY) * 0.04;
+
+            const tx = KROMA_3D.targetX;
+            const ty = KROMA_3D.targetY;
+            const scrollP = KROMA_3D.scrollProgress;
+
+            // --- Main Torus Knot ---
+            mainMesh.rotation.x += 0.004;
+            mainMesh.rotation.y += 0.008;
+            mainMesh.rotation.z += 0.002;
+            mainMesh.position.x = tx * 0.35;
+            mainMesh.position.y = -ty * 0.35;
+            mainMat.opacity = 0.14 + Math.sin(elapsed * 0.4) * 0.06;
+
+            // --- Inner Core ---
+            innerMesh.rotation.x -= 0.006;
+            innerMesh.rotation.y += 0.012;
+            innerMesh.position.x = tx * 0.25;
+            innerMesh.position.y = -ty * 0.25;
+            innerMat.opacity = 0.04 + Math.sin(elapsed * 0.6 + 1) * 0.03;
+
+            // --- Outer Ring ---
+            ringMesh.rotation.x = Math.sin(elapsed * 0.1) * 0.2;
+            ringMesh.rotation.y += 0.003;
+            ringMesh.rotation.z = Math.cos(elapsed * 0.08) * 0.15;
+            ringMesh.position.x = tx * 0.15;
+            ringMesh.position.y = -ty * 0.15;
+
+            // --- Orbiting Shapes ---
+            KROMA_3D.shapes.forEach((mesh) => {
+                const d = mesh.userData;
+                const orbitAngle = d.angle + elapsed * d.orbitSpeed;
+                const zDepth = 0.5 + scrollP * 0.3;
+                mesh.position.x = Math.cos(orbitAngle) * d.radius + tx * (0.2 + d.radius * 0.04);
+                mesh.position.z = Math.sin(orbitAngle) * d.radius * zDepth;
+                mesh.position.y = Math.sin(elapsed * d.floatSpeed + d.floatOffset) * d.floatAmp + -ty * (0.2 + d.radius * 0.04);
+                mesh.rotation.x += d.rotSpeedX;
+                mesh.rotation.y += d.rotSpeedY;
+            });
+
+            // --- Particle System ---
+            particleSystem.rotation.y += 0.0003 + scrollP * 0.0003;
+            particleSystem.rotation.x += 0.0001;
+
+            // --- Connection Lines ---
+            lineSystem.rotation.y = particleSystem.rotation.y;
+            lineSystem.rotation.x = particleSystem.rotation.x;
+
+            // --- Camera ---
+            camera.position.z = 8 - scrollP * 3;
+            camera.position.x = tx * 0.2;
+            camera.position.y = -ty * 0.2;
+            camera.lookAt(0, 0, 0);
+
             renderer.render(scene, camera);
         };
         animate();
 
+        // --- Resize ---
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -179,9 +388,75 @@ function initLenis() {
     requestAnimationFrame(raf);
 }
 
-// --- GSAP REVEALS ---
+// --- GSAP REVEALS + SCROLL-DRIVEN 3D ---
 function initGSAP() {
     gsap.registerPlugin(ScrollTrigger);
+
+    // Scroll-driven 3D camera movement
+    ScrollTrigger.create({
+        trigger: "#shop",
+        start: "top bottom",
+        end: "bottom top",
+        onUpdate: self => {
+            KROMA_3D.scrollProgress = self.progress;
+        }
+    });
+
+    // Reset on top of page
+    ScrollTrigger.create({
+        trigger: "body",
+        start: "top top",
+        end: "top -1px",
+        onLeaveBack: () => { KROMA_3D.scrollProgress = 0; }
+    });
+
+    // Footer reveal
+    gsap.from('footer', {
+        scrollTrigger: { trigger: 'footer', start: "top 90%" },
+        y: 40,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power3.out"
+    });
+}
+
+// --- 3D PERSPECTIVE TILT ON PRODUCT CARDS ---
+function initCardTilt() {
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / centerY * -8;
+            const rotateY = (x - centerX) / centerX * 8;
+
+            const percentX = (x / rect.width) * 100;
+            const percentY = (y / rect.height) * 100;
+            card.style.setProperty('--mx', `${percentX}%`);
+            card.style.setProperty('--my', `${percentY}%`);
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            card.style.transition = 'transform 0.1s ease-out';
+
+            // Dynamic image parallax within card
+            const img = card.querySelector('img');
+            if (img) {
+                img.style.transform = `scale(1.08) translate(${rotateY * 0.3}px, ${-rotateX * 0.3}px)`;
+                img.style.transition = 'transform 0.1s ease-out';
+            }
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            card.style.transition = 'transform 0.5s ease-out';
+            const img = card.querySelector('img');
+            if (img) {
+                img.style.transform = '';
+                img.style.transition = 'transform 0.5s ease-out';
+            }
+        });
+    });
 }
 
 // --- CURSOR LOGIC ---
@@ -233,11 +508,13 @@ function renderProducts() {
         </div>
     `).join('');
 
+    // Reveal animations - run after DOM is populated
     gsap.from(".product-card", {
         scrollTrigger: { trigger: "#shop", start: "top 80%" },
-        y: 80,
+        y: 60,
         opacity: 0,
-        stagger: 0.1,
+        rotationX: 8,
+        stagger: 0.08,
         duration: 1,
         ease: "power3.out"
     });

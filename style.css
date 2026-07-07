@@ -125,14 +125,15 @@ html.lenis {
     animation: scroll-line 2s infinite cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* WebGL Background */
+/* WebGL Background - Fullscreen Immersive Canvas */
 #webgl {
     pointer-events: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
 }
 
 /* Modal states */
@@ -155,14 +156,39 @@ html.lenis {
 /* Product Card Grid */
 #product-grid {
     border-collapse: collapse;
+    perspective: 1200px;
 }
 
 .product-card {
-    transition: background 0.5s;
+    background: transparent;
+    transform-style: preserve-3d;
+    will-change: transform;
+    position: relative;
+    z-index: 1;
 }
 
 .product-card:hover {
     background: rgba(255, 255, 255, 0.02);
+    z-index: 2;
+}
+
+.product-card .variant-chip {
+    transform-style: preserve-3d;
+}
+
+/* Glow effect on hoverable elements */
+.product-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at var(--mx, 50%) var(--my, 50%), rgba(204, 255, 0, 0.03), transparent 60%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.product-card:hover::after {
+    opacity: 1;
 }
 
 /* Custom scroll-hide */
@@ -179,4 +205,36 @@ html.lenis {
 /* Inversion for Cursor visibility */
 .mix-blend-difference {
     mix-blend-mode: difference;
+}
+
+/* Ambient glow accent behind hero text */
+#hero-title {
+    text-shadow: 0 0 60px rgba(204, 255, 0, 0.15), 0 0 120px rgba(204, 255, 0, 0.05);
+}
+
+/* Smooth fade between sections */
+#shop {
+    position: relative;
+    z-index: 1;
+}
+
+/* Section divider glow line */
+.divider-glow {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(204, 255, 0, 0.2), transparent);
+}
+
+/* Pulse animation for the loader */
+@keyframes loader-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.loader-glow {
+    animation: loader-pulse 1.5s ease-in-out infinite;
+}
+
+/* Scroll-driven content highlights */
+.section-highlight {
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
